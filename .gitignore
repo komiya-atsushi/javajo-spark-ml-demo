@@ -19,3 +19,8 @@ project/plugins/project/
 # IntelliJ IDEA
 .idea/
 
+# Others
+smsspamcollection
+SMSSpamCollection.zip
+bin/
+
