@@ -5,7 +5,8 @@ import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.feature.{HashingTF, Tokenizer}
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -69,6 +70,21 @@ object LogisticRegressionDemo {
 
     val model = cv.fit(dataSet)
 
-    // (use model for classification)
+    // Test with some texts
+
+    val test = sc.parallelize(Seq(
+      SMS("Javajo is awesome!!!!!"),
+      SMS("WINNER!! As a valued network customer you have been selected to receivea £900 prize reward! To claim call 09061701461. Claim code KL341. Valid 12 hours only.")))
+
+    val testDataFrame = sqlContext.createDataFrame(test)
+    model.transform(testDataFrame)
+      .select("text", "probability", "prediction")
+      .collect()
+      .foreach { case Row(text: String, prob: Vector, prediction: Double) =>
+      println(s"${if (prediction == 1.0) "ham" else "spam"}: $text (probabilities: $prob)")
+    }
+
   }
 }
+
+case class SMS(text: String)
